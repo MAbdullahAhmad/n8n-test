@@ -1,10 +1,10 @@
 # n8n Website Monitor
 
-This project starts a local n8n stack that checks a website every minute, detects content changes by hash and size, asks Groq for a 2-sentence summary when something changes, and appends the result to a local log file.
+This project starts a local n8n stack that checks a website once per hour, detects content changes by hash and size, asks Groq for a 2-sentence summary when something changes, and appends the result to a local log file.
 
 ## What it does
 
-- Checks `MONITOR_URL` every `CHECK_INTERVAL_MINUTES`
+- Checks `MONITOR_URL` every `CHECK_INTERVAL_HOURS`
 - Tracks the previous hash and content length using n8n workflow static data
 - Classifies each run as `first_run`, `unchanged`, `site_down`, `increased`, or `decreased`
 - Calls Groq for a short summary when the status is `site_down`, `increased`, or `decreased`
@@ -41,7 +41,9 @@ This project starts a local n8n stack that checks a website every minute, detect
 
 - n8n data persists in `./data/n8n`
 - The monitor log is written to `./data/automation.log`
-- The workflow skips logging on `first_run` and `unchanged`
+- The workflow sends a Groq summary on startup, on the first unchanged check of each day, and immediately when a real change is detected
+- Unchanged checks stay quiet outside the startup notification and the once-per-day heartbeat
+- Each container start clears the saved comparison state, so the first scheduled run after a restart becomes a fresh `first_run`
 - The monitor state survives restarts because it is stored in the persisted n8n workflow data
 
 ## Useful commands
